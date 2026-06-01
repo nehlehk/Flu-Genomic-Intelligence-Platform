@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Outputs
+outputs/
+
+# Data
+data/raw/
+data/interim/
+data/processed/
+
+# Mac
+.DS_Store
+
+# VSCode
+.vscode/
+
+# MLflow
+mlruns/
