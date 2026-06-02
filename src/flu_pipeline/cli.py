@@ -6,7 +6,7 @@ from flu_pipeline.validation import validate_columns
 from flu_pipeline.preprocessing import clean_dates
 from flu_pipeline.aggregation import aggregate_monthly_count    
 from flu_pipeline.models.poisson import detect_poisson_outliers
-
+from flu_pipeline.models.gaussian import detect_gaussian_outliers
 
 def main():
     parser = argparse.ArgumentParser(description="Flu surveillance pipeline")
@@ -55,6 +55,14 @@ def main():
 
     poisson_path = os.path.join(args.output, args.subtype + "_poisson_anomaly_report.csv")
     outliers.to_csv(poisson_path, index=False)
+
+    # Detect outliers using Gaussian model
+    print("Detecting outliers using Gaussian model...")
+    gaussian_outliers = detect_gaussian_outliers(monthly_count, group_cols=["country", "subtype"], count_col="sequence_count", alpha=0.05)
+
+    gaussian_path = os.path.join(args.output, args.subtype + "_gaussian_anomaly_report.csv")
+    gaussian_outliers.to_csv(gaussian_path, index=False)
+
 
     print("Pipeline completed successfully.")
 
