@@ -5,6 +5,7 @@ from flu_pipeline.ingestion import read_input_file
 from flu_pipeline.validation import validate_columns
 from flu_pipeline.preprocessing import clean_dates
 from flu_pipeline.aggregation import aggregate_monthly_count    
+from flu_pipeline.models.poisson import detect_poisson_outliers
 
 
 def main():
@@ -47,6 +48,13 @@ def main():
 )
     monthly_count.to_csv(monthly_path, index=False)
     print(f"Monthly count saved to {monthly_path}")
+
+    # Detect outliers
+    print("Detecting outliers using Poisson model...")
+    outliers = detect_poisson_outliers(monthly_count, group_cols=["country", "subtype"], count_col="sequence_count", alpha=0.05)
+
+    poisson_path = os.path.join(args.output, args.subtype + "_poisson_anomaly_report.csv")
+    outliers.to_csv(poisson_path, index=False)
 
     print("Pipeline completed successfully.")
 
