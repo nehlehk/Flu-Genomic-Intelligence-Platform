@@ -17,6 +17,6 @@ def detect_gaussian_outliers(monthly_counts: pd.DataFrame, group_cols: list[str]
         z_score = norm.ppf(1 - alpha / 2)
         group["lower_bound"] = group["expected_count"] - z_score * std_dev
         group["upper_bound"] = group["expected_count"] + z_score * std_dev
-        group["is_outlier"] = (group[count_col] > group["upper_bound"]) | (group[count_col] < group["lower_bound"])
+        group["is_outlier"] = (group[count_col] > group["upper_bound"])
         result.append(group)
     return pd.concat(result, ignore_index=True)

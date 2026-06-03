@@ -7,6 +7,8 @@ from flu_pipeline.preprocessing import clean_dates
 from flu_pipeline.aggregation import aggregate_monthly_count    
 from flu_pipeline.models.poisson import detect_poisson_outliers
 from flu_pipeline.models.gaussian import detect_gaussian_outliers
+from flu_pipeline.comparison import compare_outlier_detection_methods   
+from flu_pipeline.comparison import generate_comparison_summary
 
 def main():
     parser = argparse.ArgumentParser(description="Flu surveillance pipeline")
@@ -63,6 +65,19 @@ def main():
     gaussian_path = os.path.join(args.output, args.subtype + "_gaussian_anomaly_report.csv")
     gaussian_outliers.to_csv(gaussian_path, index=False)
 
+    # Compare methods
+    print("Comparing outlier detection methods...")
+    comparison_df = compare_outlier_detection_methods(outliers, gaussian_outliers)
+
+    comparison_path = os.path.join(args.output, args.subtype + "_comparison_report.csv")
+    comparison_df.to_csv(comparison_path, index=False)
+
+    # Generate summary    
+    print("Generating comparison summary...")
+    summary_df = generate_comparison_summary(comparison_df) 
+    summary_path = os.path.join(args.output, args.subtype + "_comparison_summary.csv")
+    summary_df.to_csv(summary_path, index=False)
+    print(f"Comparison summary saved to {summary_path}")
 
     print("Pipeline completed successfully.")
 
