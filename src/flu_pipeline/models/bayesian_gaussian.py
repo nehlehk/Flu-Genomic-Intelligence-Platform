@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np   
 
 def calculate_posterior(monthly_counts: pd.DataFrame, group_cols: list[str], 
-                        count_col: str = "sequence_count", prior_mean: float = 1 ,
-                        prior_std: float = 5 , min_hist : int = 3
+                        count_col: str = "sequence_count", prior_mean: float = 25 ,
+                        prior_std: float = 35 , min_hist : int = 3
                          ) -> pd.DataFrame:
     results = []
 

@@ -12,6 +12,7 @@ from flu_pipeline.comparison import generate_comparison_summary
 from flu_pipeline.models.bayesian_gaussian import calculate_posterior
 from flu_pipeline.backtesting import backtest_model
 from flu_pipeline.mlflow_tracking import log_experiment
+from flu_pipeline.visualisation import plot_bayesian_forecast
 
 
 def main():
@@ -96,14 +97,25 @@ def main():
     backtest_path = os.path.join(args.output, args.subtype + "_backtest_results.csv")
     backtest_results.to_csv(backtest_path, index=False)
 
+
+    country_counts = bayesian_results.query("subtype == @args.subtype").groupby("country").size().sort_values(ascending=False)
+
+    top_countries = country_counts.head(5).index.tolist()
+
+    # Visualize Bayesian forecast
+    print("Visualizing Bayesian forecast...")
+    for country in top_countries:
+        plot_path = plot_bayesian_forecast(bayesian_results, args.output+"/plots", args.subtype, country)
+        print(f"Bayesian forecast plot saved to {plot_path}")
+
     # Log experiment to MLflow
     print("Logging experiment to MLflow...")
     mae = backtest_results["MAE"].iloc[0]
     rmse = backtest_results["MSE"].iloc[0]
     coverage = backtest_results["Coverage"].iloc[0]
-    anomaly_count = bayesian_results["is_anomaly"].sum() if "is_anomaly" in bayesian_results.columns else 0
+    anomaly_count = bayesian_results["bayesian_is_outlier"].sum() if "bayesian_is_outlier" in bayesian_results.columns else 0
 
-    log_experiment(args.subtype, 1, 5, mae, rmse, coverage, anomaly_count)
+    log_experiment(args.subtype, 25, 35 , mae, rmse, coverage, anomaly_count, None, None)
 
     print("Pipeline completed successfully.")
 
