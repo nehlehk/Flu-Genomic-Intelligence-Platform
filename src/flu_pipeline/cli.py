@@ -9,6 +9,10 @@ from flu_pipeline.models.poisson import detect_poisson_outliers
 from flu_pipeline.models.gaussian import detect_gaussian_outliers
 from flu_pipeline.comparison import compare_outlier_detection_methods   
 from flu_pipeline.comparison import generate_comparison_summary
+from flu_pipeline.models.bayesian_gaussian import calculate_posterior
+from flu_pipeline.backtesting import backtest_model
+from flu_pipeline.mlflow_tracking import log_experiment
+
 
 def main():
     parser = argparse.ArgumentParser(description="Flu surveillance pipeline")
@@ -78,6 +82,28 @@ def main():
     summary_path = os.path.join(args.output, args.subtype + "_comparison_summary.csv")
     summary_df.to_csv(summary_path, index=False)
     print(f"Comparison summary saved to {summary_path}")
+
+    # Calculate Bayesian posterior probabilities
+    print("Calculating Bayesian posterior probabilities...")
+    bayesian_results = calculate_posterior(monthly_count, group_cols=["country", "subtype"], count_col="sequence_count")
+
+    bayesian_path = os.path.join(args.output, args.subtype + "_bayesian_results.csv")
+    bayesian_results.to_csv(bayesian_path, index=False)
+
+    # Backtest Bayesian model
+    print("Backtesting Bayesian model...")
+    backtest_results = backtest_model(bayesian_results)
+    backtest_path = os.path.join(args.output, args.subtype + "_backtest_results.csv")
+    backtest_results.to_csv(backtest_path, index=False)
+
+    # Log experiment to MLflow
+    print("Logging experiment to MLflow...")
+    mae = backtest_results["MAE"].iloc[0]
+    rmse = backtest_results["MSE"].iloc[0]
+    coverage = backtest_results["Coverage"].iloc[0]
+    anomaly_count = bayesian_results["is_anomaly"].sum() if "is_anomaly" in bayesian_results.columns else 0
+
+    log_experiment(args.subtype, 1, 5, mae, rmse, coverage, anomaly_count)
 
     print("Pipeline completed successfully.")
 
